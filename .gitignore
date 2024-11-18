@@ -1,0 +1,6 @@
+zig-out
+.zig-cache
+libs
+src/main.zig
+Makefile
+tests
