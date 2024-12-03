@@ -5,3 +5,5 @@ src/main.zig
 Makefile
 tests
 offsets.txt
+patterns.txt
+.DS_Store

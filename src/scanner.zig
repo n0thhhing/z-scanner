@@ -11,27 +11,26 @@ pub const ScannerOptions = struct {
     to: ?usize = null,
     first_index: bool = false,
     last_index: bool = false,
-    callback: ?*const fn (matches: ?[]usize) void = null,
+    callback: ?*const fn (matches: ?[]usize, buf: *const []const u8) void = null,
 };
 
-// TODO: Determine scan result type at comptime with a union
 pub fn Scanner(comptime options: ScannerOptions) type {
     return struct {
         const Self = @This();
         allocator: Allocator,
 
-        pub fn init(allocator: Allocator) Self {
+        pub inline fn init(allocator: Allocator) Self {
             return Self{ .allocator = allocator };
         }
 
-        pub fn free(self: Self, matches: anytype) void {
+        pub inline fn free(self: Self, matches: anytype) void {
             switch (@TypeOf(matches)) {
                 []?[]usize => {
                     for (matches) |match| self.allocator.free(match orelse continue);
                     self.allocator.free(matches);
                 },
                 ?[]usize => self.allocator.free(matches orelse return),
-                else => @compileError("Invalid Type passed into Scanner.free()"),
+                inline else => @compileError("Invalid Type passed into Scanner.free()"),
             }
         }
 
@@ -44,7 +43,7 @@ pub fn Scanner(comptime options: ScannerOptions) type {
                 defer pattern_bytes.deinit();
                 const match = try self.kpmScan(buf, pattern_bytes);
                 matches[i] = match;
-                if (options.callback) |cb| cb(match);
+                if (options.callback) |cb| cb(match, &buf);
             }
             return matches;
         }
